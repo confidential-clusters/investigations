@@ -1,0 +1,14 @@
+[Unit]
+Description=Unlock root disk via Remote Attestation
+Before=cryptsetup.target
+Before=initrd-switch-root.target
+Before=systemd-cryptsetup@root.service
+After=network-online.target
+Wants=network-online.target
+# After=dev-disk-by\x2dlabel-boot.device
+# Requires=dev-disk-by\x2dlabel-boot.device
+DefaultDependencies=no
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/aa-unlock

@@ -1,0 +1,16 @@
+[Unit]
+Description=Replace LUKS key via Remote Attestation
+#Before=cryptsetup.target
+Before=initrd-switch-root.target
+Before=ignition-complete.target
+#Before=systemd-cryptsetup@root.service
+After=network-online.target
+Wants=network-online.target
+After=ignition-files.service
+#After=dev-disk-by\x2dlabel-boot.device
+#Requires=dev-disk-by\x2dlabel-boot.device
+DefaultDependencies=no
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/aa-rekey
