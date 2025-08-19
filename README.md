@@ -26,6 +26,14 @@ just build oci-archive osbuild-qemu
 just --os=fcos build oci-archive osbuild-qemu
 ```
 
+In order to understand which image needs to be used for a specific OKD version, you can use this command:
+```bash
+$ oc adm release info --image-for=stream-coreos quay.io/okd/scos-release:4.19.0-okd-scos.1
+```
+Where the image is the okd release from where you get the `openshift-installer`.
+
+
+
 In this example, we use 2 VMs, the first for running the trustee server while the second VM has been attested and its
 root disk is encrypted using the secret stored in Trustee.
 
@@ -54,3 +62,45 @@ EXISTING_TRUSTEE=yes scripts/create-vms.sh coreos.key.pub
 ```
 
 to skip the creation of the former VM.
+
+## Deploying OKD with kcli
+
+You can use [kcli](https://kcli.readthedocs.io/en/latest/) to deploy an OKD cluster. It will provision the control plane
+and worker nodes on the local libvirt environment.
+
+Currently, this setup works if you relies on the branch [cocl-kcli](https://github.com/alicefr/kcli/tree/cocl-kcli)
+since it includes the fixes for the [TPM](https://github.com/karmab/kcli/pull/825) and to use a
+[custom url for the coreos image](https://github.com/karmab/kcli/pull/826).
+You can enable kcli by:
+```bash
+git clone https://github.com/alicefr/kcli.git -b cocl-kcli
+cd  kcli
+python3 -m venv .venv
+source .venv/bin/activate
+pip install --upgrade pip
+pip install -e .
+```
+
+The custom SCOS image can be hosted locally using the container image `httpd`:
+```bash
+podman run -td --rm -p 8000:80\
+    -v "$PWD":/usr/local/apache2/htdocs/ \
+    docker.io/library/httpd:2
+```
+
+### Base Configuration
+* Start from the configuration [cluster.yaml](okd/cluster.yaml)
+* Customize it by specifying:
+  * SSH public key
+  * custom SCOS image
+```bash
+kcli create kube openshift \
+  --paramfile ~/src/investigations/okd/cluster.yaml \
+  -P image_url=http://localhost:8000/disk.qcow2 \
+  -P pub_key=/home/afrosi/.ssh/okd.pub
+```
+
+Additional control planes and workers can be added with the `scale` command:
+```bash
+kcli scale kube openshift -w 1 cocl --paramfile okd/cluster.yaml
+```
