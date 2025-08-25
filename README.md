@@ -51,3 +51,32 @@ EXISTING_TRUSTEE=yes scripts/create-vms.sh coreos.key.pub
 ```
 
 to skip the creation of the former VM.
+
+## Deploying OKD with kcli
+
+You can use [kcli](https://kcli.readthedocs.io/en/latest/) to deploy an OKD cluster. It will provision the control plane
+and worker nodes on the local libvirt environment.
+
+The custom SCOS image can be hosted locally using the container image `httpd`:
+```bash
+podman run -td --rm -p 8000:80\
+    -v "$PWD":/usr/local/apache2/htdocs/ \
+    docker.io/library/httpd:2
+```
+
+### Base Configuration
+* Start from the configuration [cluster.yaml](okd/cluster.yaml)
+* Customize it by specifying:
+  * SSH public key
+  * custom SCOS image
+```bash
+kcli create kube openshift \
+  --paramfile ~/src/investigations/okd/cluster.yaml \
+  -P image_url=http://localhost:8000/disk.qcow2 \
+  -P pub_key=/home/afrosi/.ssh/okd.pub
+```
+
+Additional control planes and workers can be added with the `scale` command:
+```bash
+kcli scale kube openshift -w 1 cocl --paramfile okd/cluster.yaml
+```
