@@ -81,26 +81,68 @@ pip install --upgrade pip
 pip install -e .
 ```
 
-The custom SCOS image can be hosted locally using the container image `httpd`:
-```bash
-podman run -td --rm -p 8000:80\
-    -v "$PWD":/usr/local/apache2/htdocs/ \
-    docker.io/library/httpd:2
+### Import OKD cluster
+You can import a cluster by:
+```
+$ okd/import-cluster.sh cocl-20250825-162523.tar.gz
+Detected cluster name from tarball: cocl
+Importing cluster from: cocl-20250825-162523.tar.gz
+Import directory: cocl
+Extracting tarball...
+Ensuring required directories exist...
+Restoring VirtualMachines content...
+Restoring cluster cocl content...
+Domain 'cocl-ctlplane-0' defined from cocl/cocl-ctlplane-0.xml
+
+Checking hosts file...
+Hosts entry already exists and matches, no change needed
+Setting correct permissions...
+Cleaning up temporary directory...
+Starting vms from plan cocl
+cocl-ctlplane-0 started on local!
+Plan cocl started!
+Import completed successfully!
+Waiting for API server...
+Waiting for API server...
+[..]
+Waiting for API server...
+okAPI server is up!
+set export KUBECONFIG=/home/afrosi/.kcli/clusters/cocl/auth/kubeconfig
 ```
 
-### Base Configuration
+*Note: with the current setup, the control planes aren't using the modified SCOS image, hence they don't go through only
+attestation. Only the workers for now uses the custom SCOS image*
+
+Create worker:
+```
+ kcli scale kube openshift -w 1 cocl --paramfile okd/cluster.yaml 
+Scaling on client local
+Using separate worker image for scaling: /home/afrosi/images/scos-qemu.x86_64.qcow2
+Deploying Vms...
+cocl-ctlplane-0 skipped on local!
+Deploying Vms...
+Using image path although it's not in a pool
+Merging ignition data from existing /home/afrosi/.kcli/clusters/cocl/worker.ign for cocl-worker-0
+cocl-worker-0 deployed on local
+Workers nodes will join the cluster in a few minutes
+```
+
+## How to create the OKD cluster
 * Start from the configuration [cluster.yaml](okd/cluster.yaml)
 * Customize it by specifying:
   * SSH public key
   * custom SCOS image
 ```bash
-kcli create kube openshift \
-  --paramfile ~/src/investigations/okd/cluster.yaml \
-  -P image_url=http://localhost:8000/disk.qcow2 \
-  -P pub_key=/home/afrosi/.ssh/okd.pub
+$ kcli create kube openshift \
+    --paramfile okd/cluster.yaml cocl \
+    --force  -P pub_key=$HOME/.ssh/okd.pub\
+    -P worker_image=$HOME/images/scos-qemu.x86_64.qcow2
 ```
 
-Additional control planes and workers can be added with the `scale` command:
+## Export the cluster
+You can create a tarball including the artifacts for the created cluster by:
 ```bash
-kcli scale kube openshift -w 1 cocl --paramfile okd/cluster.yaml
+$ okd/export-cluster.sh cocl
 ```
+
+*Note: the cluster should have already finished to bootstrap since the export script only dump the first control plane*
