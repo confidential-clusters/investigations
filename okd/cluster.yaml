@@ -1,0 +1,14 @@
+cluster: cocl
+domain: confidential-cluster.org
+version: stable
+tag: '4.19'
+ctlplanes: 1
+workers: 0
+memory: 20480
+numcpus: 16
+okd: true
+worker_memory: 8192
+autologin: true
+vmrules:
+- cocl*:
+    tpm: true
