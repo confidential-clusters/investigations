@@ -9,13 +9,14 @@ PORT="2222"
 OVMF_CODE=${OVMF_CODE:-"/usr/share/edk2/ovmf/OVMF_CODE_4M.secboot.qcow2"}
 OVMF_VARS_TEMPLATE=${OVMF_VARS_TEMPLATE:-"/usr/share/edk2/ovmf/OVMF_VARS_4M.secboot.qcow2"}
 TRUSTEE_PORT=""
+key=""
 
 set -euo pipefail
 # set -x
 
 force=false
 dir=trustee
-while getopts "k:b:n:f p:s:d:t:i:" opt; do
+while getopts "k:b:n:fp:s:d:t:i:" opt; do
   case $opt in
 	k) key=$OPTARG ;;
 	b) butane=$OPTARG ;;
@@ -56,7 +57,7 @@ podman run --interactive --rm --security-opt label=disable \
 	--volume "$(pwd)":/pwd \
 	--volume "${bufile}":/config.bu:z \
 	--workdir /pwd \
-	quay.io/coreos/butane:release \
+	quay.io/confidential-clusters/butane:clevis-pin-trustee \
 	--pretty --strict /config.bu --output "/pwd/${IGNITION_FILE}" \
 	"${butane_args[@]}"
 
