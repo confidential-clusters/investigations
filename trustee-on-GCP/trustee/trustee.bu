@@ -1,0 +1,52 @@
+variant: fcos
+version: 1.6.0
+passwd:
+  users:
+    - name: core
+      ssh_authorized_keys:
+      - <KEY>
+
+systemd:
+  units:
+    - name: serial-getty@ttyS0.service
+      dropins:
+      - name: autologin-core.conf
+        contents: |
+          [Service]
+          # Override Execstart in main unit
+          ExecStart=
+          # Add new Execstart with `-` prefix to ignore failure`
+          ExecStart=-/usr/sbin/agetty --autologin core --noclear %I $TERM
+
+storage:
+  directories:
+  - path: /var/kbs/config
+    overwrite: true
+  files:
+    - path: /etc/profile.d/systemd-pager.sh
+      mode: 0644
+      contents:
+        inline: |
+          # Tell systemd to not use a pager when printing information
+          export SYSTEMD_PAGER=cat
+    - path: /usr/local/bin/populate_kbs.sh
+      mode: 0755
+      contents:
+        local: populate_kbs.sh
+    - path: /etc/containers/systemd/key-generation.container
+      mode: 0644
+      contents:
+        local: containers/key-generation.container
+    - path: /var/kbs/config/kbs-config.toml
+      mode: 0644
+      contents:
+        local: config/kbs-config.toml
+    - path: /etc/containers/systemd/kbs.container
+      mode: 0644
+      contents:
+        local: containers/kbs.container
+    - path: /etc/containers/systemd/kbs-client.container
+      mode: 0644
+      contents:
+        local: containers/kbc.container
+
