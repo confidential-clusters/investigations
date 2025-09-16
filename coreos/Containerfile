@@ -2,6 +2,14 @@ ARG BASE
 FROM quay.io/trusted-execution-clusters/trustee-attester:2025-11-12 as kbc
 FROM quay.io/trusted-execution-clusters/clevis-pin-trustee as clevis
 FROM quay.io/trusted-execution-clusters/ignition:attestation as ignition
+
+ARG KBS_CLIENT_IMAGE=quay.io/confidential-clusters/trustee-attester:2025-10-21
+ARG CLEVIS_PIN_TRUSTEE_IMAGE=quay.io/confidential-clusters/clevis-pin-trustee
+
+FROM $KBS_CLIENT_IMAGE as kbc
+FROM $CLEVIS_PIN_TRUSTEE_IMAGE as clevis
+FROM quay.io/confidential-clusters/ignition:attestation as ignition
+
 FROM $BASE
 
 COPY ./usr /usr

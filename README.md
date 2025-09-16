@@ -27,9 +27,9 @@ Build the Fedora CoreOS or Centos Stream CoreOS image with the custom initrd:
 ```bash
 cd coreos
 # Centos Stream CoreOS image
-just os=scos build oci-archive osbuild-qemu
+just os=scos build oci-archive osbuild
 # Fedora CoreOS image
-just build oci-archive osbuild-qemu
+just build oci-archive osbuild
 ```
 
 ### Create local Trustee deployment
