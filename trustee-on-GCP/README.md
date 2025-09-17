@@ -29,7 +29,7 @@ This guide provides step-by-step instructions for setting up remote attestation 
 
 3. Deploy the client by running:
     ```bash
-    ./scripts/deploy-client.sh -k <SSH_KEY> -b ./trustee/config/kbs-config.toml -n <VM_NAME> -i <IMAGE_NAME>
+    ./scripts/deploy-client.sh -k <SSH_KEY> -b ./rh-coreos/luks.bu -n <VM_NAME> -i <IMAGE_NAME>
     ```
     This will create the VM, perform attestation and decrypt the disk.
 
@@ -55,4 +55,9 @@ The policy only checks hardware for both SEV-SNP and TPM.
 ## Resource Policy
 
 Verify that both devices are affirming and exist.
+
+
+## Demo
+
+[![asciicast](https://asciinema.org/a/nsdsarO2ZTbXFjbh0wuNlohMt.svg)](https://asciinema.org/a/nsdsarO2ZTbXFjbh0wuNlohMt)
 
