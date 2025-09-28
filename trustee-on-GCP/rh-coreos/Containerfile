@@ -1,0 +1,18 @@
+FROM quay.io/rkaufman/kbs-tpm-snp:latest as kbc
+FROM quay.io/openshift-release-dev/ocp-v4.0-art-dev:419.96.202505021444-0-coreos
+
+COPY usr /usr
+COPY --from=kbc /usr/local/bin/kbs-client /usr/bin/trustee-attester
+
+RUN set -xeuo pipefail && \
+    KERNEL_VERSION="$(basename $(ls -d /lib/modules/*))" && \
+    raw_args="$(lsinitrd /lib/modules/${KERNEL_VERSION}/initramfs.img | grep '^Arguments: ' | sed 's/^Arguments: //')" && \
+    stock_arguments=$(echo "$raw_args" | sed "s/'//g") && \
+    echo "Using kernel: $KERNEL_VERSION" && \
+    echo "Dracut arguments: $stock_arguments" && \
+    mkdir -p /tmp/dracut /var/roothome && \
+    dracut $stock_arguments && \
+    mv -v /boot/initramfs*.img "/lib/modules/${KERNEL_VERSION}/initramfs.img" && \
+    ostree container commit
+
+LABEL com.coreos.osname="rh-coreos"
