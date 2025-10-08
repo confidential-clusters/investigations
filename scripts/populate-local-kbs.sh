@@ -41,7 +41,6 @@ default executables := 33
 
 tpm_pcrs_valid if {
   input.tpm.pcr04 in data.reference.tpm_pcr4
-  input.tpm.pcr07 in data.reference.tpm_pcr7
   input.tpm.pcr14 in data.reference.tpm_pcr14
 }
 

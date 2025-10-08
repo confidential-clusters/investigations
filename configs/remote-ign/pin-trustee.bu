@@ -1,5 +1,5 @@
 variant: fcos
-version: 1.7.0-experimental
+version: 1.6.0
 storage:
   luks:
     - name: root

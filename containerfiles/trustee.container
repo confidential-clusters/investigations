@@ -11,7 +11,7 @@ RUN dnf install -y perl clang make git \
     && dnf clean all
 
 RUN cd /usr/src/ && \
-    git clone https://github.com/trusted-execution-clusters/trustee.git && \
+    git clone https://github.com/confidential-containers/trustee.git && \
     cd trustee && git checkout ${COMMIT}
 
 RUN cd /usr/src/trustee/kbs && \

@@ -22,12 +22,13 @@ label := if os == "scos" { scos_label } else { fcos_label }
 archive := os + ".ociarchive"
 
 config := if os == "scos" { scos_config } else { fcos_config }
+full_name := if os == "scos" { "centos-stream-coreos" } else { "fedora-coreos" }
 
 build:
-    podman build --no-cache --build-arg BASE={{base}} --build-arg COM_COREOS_OSNAME={{label}} -t {{image}} -f Containerfile .
+    sudo podman build --no-cache --build-arg BASE={{base}} --build-arg COM_COREOS_OSNAME={{label}} -t {{image}} -f Containerfile .
 
 oci-archive:
-    skopeo copy containers-storage:{{image}} oci-archive:{{archive}}
+    sudo skopeo copy containers-storage:{{image}} oci-archive:{{archive}}
 
 # Reusable cosa function definition
 cosa_function := '''
@@ -37,10 +38,11 @@ cosa_function := '''
 
         # Default container image
         COREOS_ASSEMBLER_CONTAINER_LATEST="quay.io/coreos-assembler/coreos-assembler:latest"
-        podman pull $COREOS_ASSEMBLER_CONTAINER_LATEST
+        sudo podman pull $COREOS_ASSEMBLER_CONTAINER_LATEST
 
-        set -x
-        podman run --rm -ti --security-opt=label=disable --privileged \
+        set -ex
+        sudo podman run --rm -ti --security-opt=label=disable --privileged -u 0 \
+				--network host \
             -v=${PWD}:/srv/ --device=/dev/kvm --device=/dev/fuse \
             --tmpfs=/tmp -v=/var/tmp:/var/tmp --name=cosa \
             ${COREOS_ASSEMBLER_CONFIG_GIT:+-v=$COREOS_ASSEMBLER_CONFIG_GIT:/srv/src/config/:ro} \
@@ -48,11 +50,10 @@ cosa_function := '''
             ${COREOS_ASSEMBLER_ADD_CERTS:+-v=/etc/pki/ca-trust:/etc/pki/ca-trust:ro} \
             ${COREOS_ASSEMBLER_CONTAINER_RUNTIME_ARGS} \
             ${COREOS_ASSEMBLER_CONTAINER:-$COREOS_ASSEMBLER_CONTAINER_LATEST} "$@"
-        set +xe
     }
 '''
 
-build-qemu:
+init:
     #!/usr/bin/env bash
     {{cosa_function}}
     mkdir -p cache
@@ -60,4 +61,15 @@ build-qemu:
     cd cache
     cosa init --force {{config}}
     cosa import oci-archive:/srv/{{archive}}
+
+build-qemu:
+    #!/usr/bin/env bash
+    {{cosa_function}}
+    cd cache
     cosa osbuild qemu
+
+kubevirt:
+    #!/usr/bin/env bash
+    {{cosa_function}}
+    cd cache
+    cosa osbuild kubevirt
