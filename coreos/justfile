@@ -3,8 +3,8 @@ os := "fcos"
 scos_base_img:= "quay.io/okd/scos-content@sha256:3813e6608a999756931d3d621932af9662860e71a552b2670f9fe320bf0d3585"
 fcos_base_img:= "quay.io/fedora/fedora-coreos:42.20250705.3.0"
 
-scos_img:= "quay.io/confidential-clusters/scos"
-fcos_img:= "quay.io/confidential-clusters/fcos"
+scos_img:= "quay.io/confidential-clusters/centos-strea-coreos"
+fcos_img:= "quay.io/confidential-clusters/fedora-coreos"
 
 fcos_os:= "fedora-coreos"
 scos_os:= "rhcos"
@@ -17,6 +17,7 @@ image := if os == "scos" { scos_img } else { fcos_img }
 os_name := if os == "scos" { scos_os } else { fcos_os }
 label := if os == "scos" { scos_label } else { fcos_label }
 archive := os + ".ociarchive"
+qcow := os + "-qemu.x86_64.qcow2"
 
 build:
     sudo podman build --no-cache --build-arg BASE={{base}} --build-arg COM_COREOS_OSNAME={{label}} -t {{image}} -f Containerfile .
@@ -35,4 +36,7 @@ osbuild-qemu:
         --ociarchive {{archive}} \
         --osname {{os_name}}
     rm -rf "$TMPDIR"
-    sudo chown $USER:$USER {{os}}-qemu.x86_64.qcow2
+    sudo chown $USER:$USER {{qcow}}
+
+kubevirt-cd:
+	sudo podman build --build-arg IMAGE={{qcow}} -t {{image}}-kubevirt -f Containerfile.cd .
