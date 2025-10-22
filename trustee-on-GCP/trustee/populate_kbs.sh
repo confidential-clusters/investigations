@@ -68,10 +68,10 @@ podman exec -ti kbs-client \
 		--type rego --id default_cpu
 
 # Upload resource
-cat > test_data << EOF
-1234567890abcde
+cat > secret << EOF
+{ "key_type": "oct", "key": "2b442dd5db4478367729ef8bbf2e7480" }
 EOF
-podman cp test_data kbs-client:/secret
+podman cp secret kbs-client:/secret
 podman exec -ti kbs-client \
 	kbs-client --url http://${KBS}  config \
 		--auth-private-key ${KEY} \

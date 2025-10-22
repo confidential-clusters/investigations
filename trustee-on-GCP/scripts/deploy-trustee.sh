@@ -1,7 +1,7 @@
 #!/bin/bash
 
 IGNITION_FILE="config.ign"
-IGNITION_CONFIG="$(pwd)/${IGNITION_FILE}"
+IGNITION_CONFIG="$(pwd)/trustee-on-GCP/${IGNITION_FILE}"
 
 
 TRUSTEE_PORT=""
@@ -16,6 +16,7 @@ while getopts "k:b:n:f p:s:d:t:i:" opt; do
 	k) key=$OPTARG ;;
 	b) butane=$OPTARG ;;
 	n) VM_NAME=$OPTARG ;;
+	i) IMAGE=$OPTARG ;;
 	\?) echo "Invalid option"; exit 1 ;;
   esac
 done
@@ -39,7 +40,7 @@ KEY=$(cat "$key")
 sed "s|<KEY>|$KEY|g" "$butane" >"${bufile}"
 
 podman run --interactive --rm --security-opt label=disable \
-	--volume "$(pwd)":/pwd -v "${bufile}":/config.bu:z --workdir /pwd quay.io/coreos/butane:release \
+	--volume "$(pwd)/trustee-on-GCP":/pwd -v "${bufile}":/config.bu:z --workdir /pwd quay.io/coreos/butane:release \
 	--pretty --strict /config.bu --output "/pwd/${IGNITION_FILE}" -d /pwd/trustee
 
 chcon --verbose --type svirt_home_t ${IGNITION_CONFIG}
@@ -50,8 +51,7 @@ ZONE='us-central1-a'
 MACHINE_TYPE='n2d-standard-2'
 
 gcloud compute instances create ${VM_NAME}             \
-	--image-project "rhcos-cloud"    \
-    --image "rhcos-9-6-20250911-0-gcp-x86-64"   \
+    --image ${IMAGE}   \
     --metadata-from-file "user-data=${IGNITION_CONFIG}" \
     --confidential-compute-type "SEV_SNP"               \
     --machine-type "${MACHINE_TYPE}"                    \

@@ -5,48 +5,52 @@ This guide provides step-by-step instructions for setting up remote attestation 
 
 ## Prerequisites
 
-1. Copy the pull secret from [Red Hat OpenShift](https://console.redhat.com/openshift/create/local) to ```~/.config/containers/auth.json``` into auths:quay.io:auth:&lt;pull_secret&gt;
+1. Copy the pull secret from [Red Hat OpenShift](https://console.redhat.com/openshift/create/local) to `~/.config/containers/auth.json` under `auths:quay.io:auth:<pull_secret>`
 2. Install [gcloud](https://cloud.google.com/sdk/docs/install)
-3. Configure a subnet on GCP for the server and client by running ```./scripts/network_setup.sh```.
+3. Configure a subnet on GCP for the server and client by running `./scripts/network_setup.sh`
 
 
-## Deploy the trustee server (KBS)
+## Deploy the Trustee Server (KBS)
 
-1. Run ```./scripts/deploy-trustee.sh -k <SSH_KEY> -b ./trustee/trustee.bu```. This will start the KBS with the correct configuration (the name of this VM must match the hostname of the server, so it has to match `KBS_HOSTNAME` in `./scripts/rh-coreos/usr/libexec/aa-client`).
-2. Access the VM via SSH, then run ```sudo /usr/local/bin/populate_kbs.sh```. This will add the refrence value to Trustee.
+1. To deploy the Trustee server, run:
+```bash
+./trustee-on-GCP/scripts/deploy-trustee.sh -k <SSH_KEY> -b ./trustee-on-GCP/trustee/trustee.bu -i <IMAGE_NAME>
+```
+2. After the server is up, populate the KBS with the reference value and add the remote ignition file:
+```bash
+./scripts/populate-trustee-kbs.sh <SSH_KEY> <SERVER_IP> <HOSTNAME>
+``` 
+(The default hostname is `kbs`)
 
-## Deploy the client
+
+## Deploy the Client
 
 1. Build a custom RHCOS image by running:
     ```bash
-    ./scripts/build-rhcos-image.sh <IMAGE_NAME>
+    cd coreos
+    just clevis_pin_trustee_image=quay.io/rkaufman/clevis-pin-trustee:latest os=scos base=quay.io/okd/scos-content:4.20.0-okd-scos.6-stream-coreos \
+    kbc_image=quay.io/rkaufman/kbs-tpm-snp:latest platform=gcp build oci-archive osbuild
     ```
 
 2. Upload the image to GCP by running:
     ```bash
-    ./scripts/upload_image_gcp.sh <BUCKET_NAME> <IMAGE_NAME>
+    ./trustee-on-GCP/scripts/upload_image_gcp.sh <BUCKET_NAME> <IMAGE_NAME>
     ```
 
 3. Deploy the client by running:
     ```bash
-    ./scripts/deploy-client.sh -k <SSH_KEY> -b ./rh-coreos/luks.bu -n <VM_NAME> -i <IMAGE_NAME>
+    ./trustee-on-GCP/scripts/deploy-client.sh -k <SSH_KEY> -b ./rh-coreos/luks.bu -n <VM_NAME> -i <IMAGE_NAME>
     ```
-    This will create the VM, perform attestation and decrypt the disk.
+    This will create the VM, perform attestation, and decrypt the disk using clevis-pin.
 
 
+## Information About KBS, KBS-Client, and Clevis-Pin
 
+These are modified versions of [trustee](https://github.com/iroykaufman/trustee/tree/addtpm) and the [guest component](https://github.com/iroykaufman/guest-components/tree/TPM-as-additional-device) to support the TPM as an additional device.
 
-## Info about the kbs and kbs-client
+The changes in the guest component are also included in [PR#1093](https://github.com/confidential-containers/guest-components/pull/1093), and the changes in Trustee are related to [PR#851](https://github.com/confidential-containers/trustee/pull/851), where the most significant change is the removal of the trusted Attestation Key (AK) list.
 
-I use this version of [trustee](https://github.com/iroykaufman/trustee/tree/addtpm) and the [guest component](https://github.com/iroykaufman/guest-components/tree/TPM-as-additional-device).
-
-Trustee includes [pr#851](https://github.com/confidential-containers/trustee/pull/851) with the following changes:
-
-1. The guest component encrypts the public part of the AK in ASN.1 format, but trustee unmarshals it. The unmarshal part was replaced with an ASN.1 decrypt method.
-2. The TPM verifier does not check the nonce in the TPM because the `report_data` contains a digest of the `runtime_data` instead of the nonce. This is because the TPM is an additional device. This is a temporary solution.
-
-
-The changes in the guest component are included in this [PR#1093](https://github.com/confidential-containers/guest-components/pull/1093).
+This uses a modified version of `clevis-pin-trustee` that adds AK before performing attestation. The source code is available here: [clevis-pin-trustee](https://github.com/iroykaufman/clevis-pin-trustee/tree/create-tpm-ak)
 
 ## Attestation Policy
 
@@ -56,8 +60,4 @@ The policy only checks hardware for both SEV-SNP and TPM.
 
 Verify that both devices are affirming and exist.
 
-
-## Demo
-
-[![asciicast](https://asciinema.org/a/nsdsarO2ZTbXFjbh0wuNlohMt.svg)](https://asciinema.org/a/nsdsarO2ZTbXFjbh0wuNlohMt)
 
