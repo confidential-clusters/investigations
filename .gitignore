@@ -1,6 +1,7 @@
 cache/
 coreos.key*
-fcos-cvm.tar*
 *.ign
 *.ociarchive
 tmp/
+*.tar
+*.tar.gz

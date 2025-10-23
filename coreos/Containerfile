@@ -1,6 +1,10 @@
 ARG BASE
-FROM quay.io/afrosi_rh/kbs-client-image:latest as kbc
-FROM quay.io/confidential-clusters/clevis-pin-trustee as clevis
+
+ARG KBS_CLIENT_IMAGE=quay.io/afrosi_rh/kbs-client-image:latest
+ARG CLEVIS_PIN_TRUSTEE_IMAGE
+
+FROM $KBS_CLIENT_IMAGE as kbc
+FROM $CLEVIS_PIN_TRUSTEE_IMAGE as clevis
 FROM quay.io/confidential-clusters/ignition:clevis-pin-trustee as ignition
 FROM $BASE
 
