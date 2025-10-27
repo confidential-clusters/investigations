@@ -29,10 +29,10 @@ default configuration := 36
 
 ##### Azure vTPM SNP
 executables := 3 if {
+    platform := detect_platform
     input.azsnpvtpm.measurement in data.reference.measurement
-    input.azsnpvtpm.tpm.pcr4 in data.reference.snp_pcr04
-    input.azsnpvtpm.tpm.pcr7 in data.reference.snp_pcr07
-    input.azsnpvtpm.tpm.pcr11 in data.reference.snp_pcr11
+    pcr_match(platform, "pcr04", data.reference.pcr04)
+    pcr_match(platform, "pcr07", data.reference.pcr07)
 }
 
 hardware := 2 if {
@@ -52,3 +52,35 @@ configuration := 2 if {
     input.azsnpvtpm.policy_smt_allowed in data.reference.smt_allowed
 }
 
+##### PCRs check for any platform
+platform_paths := {
+    "azure-snp": ["azsnpvtpm", "tpm"],
+    "azure-tdx": ["aztdxvtpm", "tpm"],
+    "raw": ["tpm"]
+}
+
+detect_platform := "azure-snp" if {
+    input.azsnpvtpm
+} else := "azure-tdx" if {
+    input.aztdxvtpm
+} else := "raw"
+
+get_by_path(obj, path) = result if {
+    result := object.get(obj, path, false)
+}
+
+get_pcr_value(platform, pcr_name) = value if {
+    platform != "raw"
+    tpm := get_by_path(input, platform_paths[platform])
+    value := tpm[pcr_name]
+}
+
+get_pcr_value("raw", pcr_name) = value if {
+    tpm := get_by_path(input, platform_paths["raw"])
+    idx := to_number(trim_prefix(pcr_name, "pcr"))
+    value := tpm.pcr[idx]
+}
+
+pcr_match(platform, pcr_name, expected_values) if {
+    lower(get_pcr_value(platform, pcr_name)) in expected_values
+}
