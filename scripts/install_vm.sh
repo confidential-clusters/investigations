@@ -20,7 +20,7 @@ key="${key:-}"
 butane="${butane:-}"
 VM_NAME="${VM_NAME:-fcos-kbs}"
 image="${image:-}"
-RAM_MB="${RAM_MB:-2048}"
+RAM_MB="${RAM_MB:-4098}"
 
 OVMF_CODE=${OVMF_CODE:-"/usr/share/edk2/ovmf/OVMF_CODE_4M.secboot.qcow2"}
 OVMF_VARS_TEMPLATE=${OVMF_VARS_TEMPLATE:-"/usr/share/edk2/ovmf/OVMF_VARS_4M.secboot.qcow2"}
@@ -32,6 +32,8 @@ STREAM="stable"
 VCPUS="2"
 DISK_GB="20"
 URL="--connect=qemu:///system"
+
+TRUSTEE_ADDR="${TRUSTEE_ADDR:-}"
 
 usage() {
 	echo "Usage: $0 -k <path-ssh-pubkey> -b <path-to-butane-config> -i <path-to-qcow2-image>"
@@ -65,6 +67,10 @@ elif [[ "$VM_NAME" == "existing-trustee" ]]; then
 	sed "s|<KEY>|key|g;
 	     s|<IP>|$(ip route | grep virbr0 | cut -d' ' -f9)|g;
 	     s|pin-trustee.ign|ignition-clevis-pin-trustee|g" "$butane" > "$bufile"
+elif [ ! -z "$TRUSTEE_ADDR" ]; then
+	sed "s|<KEY>|key|g;
+	     s|<IP>|$TRUSTEE_ADDR|g;
+	     s|pin-trustee.ign|ignition-clevis-pin-trustee|g" "$butane" > "$bufile"
 else
 	sed "s|<KEY>|$key|g" $butane > ${bufile}
 fi
@@ -77,7 +83,7 @@ podman run --interactive --rm --security-opt label=disable \
 	--volume "$(pwd)":/pwd \
 	--volume "${bufile}":/config.bu:z \
 	--workdir /pwd \
-	quay.io/confidential-clusters/butane:clevis-pin-trustee \
+	quay.io/confidential-clusters/butane:attestation \
 	--pretty --strict /config.bu --output "/pwd/${IGNITION_FILE}" \
 	"${butane_args[@]}"
 
