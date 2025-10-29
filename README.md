@@ -46,6 +46,30 @@ The script `create_vms.sh`:
 scripts/create-vms.sh coreos.key.pub 
 ```
 
+### Create local Trustee deployment
+
+Generate the key pair for Trustee:
+```bash
+scripts/gen_key.sh
+```
+
+Create trustee and helper containers for the setup:
+```bash
+sudo podman kube play trustee.yaml
+```
+The pods exposes 3 ports:
+ - `8080`: for the KBS and Trustee
+ - `8000`: serving the ignition file with the clevis configuration
+ - `5000`: serving the registration endpoint for the AK
+
+The script `scripts/populate-local-kbs.sh` populate the local KBS.
+You can now launch the VM by exposing the trustee IP (for example, using the IP of `virbr0`).
+```bash
+export TRUSTEE_ADDR=192.168.122.1
+scripts/install_vm.sh  -k <KEY> -b configs/ak.bu  -i $(pwd)/coreos/fcos-qemu.x86_64.qcow2 -n <VM_NAME>
+```
+
+
 ### Example with the Confidential Clusters operator and a local VM
 
 If you have deployed Confidential Clusters with Trustee, and its KBS and register server are available at ports `8080` and `8000`, and the VM PCR values are configured with Trustee, you can instead run

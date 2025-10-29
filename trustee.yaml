@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: compose-pod
+spec:
+  volumes:
+    - name: trusted-ak-keys
+      emptyDir: {}
+    - name: trustee-config
+      hostPath:
+        path: ./trustee
+        type: Directory
+    - name: ign-config
+      hostPath:
+        path: ./configs/remote-ign
+        type: Directory
+  containers:
+    - name: register-ak
+      image: quay.io/confidential-clusters/test-sever-ak:latest
+      ports:
+        - containerPort: 5000
+          hostPort: 5000
+      volumeMounts:
+        - name: trusted-ak-keys
+          mountPath: /data
+
+    - name: kbs
+      image: quay.io/confidential-clusters/kbs:latest
+      command: ["kbs", "--config-file", "/config/kbs-config.toml"]
+      ports:
+        - containerPort: 8080
+          hostPort: 8080
+      volumeMounts:
+        - name: trusted-ak-keys
+          mountPath: /etc/tpm/trusted_ak_keys
+        - name: trustee-config
+          mountPath: /config
+
+    - name: ignition-service
+      image: docker.io/library/httpd:2.4
+      ports:
+        - containerPort: 80
+          hostPort: 8000
+      volumeMounts:
+        - name: ign-config
+          mountPath: /usr/local/apache2/htdocs/
