@@ -1,7 +1,7 @@
 os := "fcos"
 
 scos_base_img:= "quay.io/okd/scos-content@sha256:3813e6608a999756931d3d621932af9662860e71a552b2670f9fe320bf0d3585"
-fcos_base_img:= "quay.io/fedora/fedora-coreos:42.20250705.3.0"
+fcos_base_img:= "quay.io/fedora/fedora-coreos:42.20251012.2.0"
 
 scos_img:= "quay.io/confidential-clusters/scos"
 fcos_img:= "quay.io/confidential-clusters/fcos"

@@ -1,11 +1,11 @@
 ARG BASE
-FROM quay.io/afrosi_rh/kbs-client-image:latest as kbc
+FROM quay.io/confidential-clusters/trustee-attester:2025-10-21 as kbc
 FROM quay.io/confidential-clusters/clevis-pin-trustee as clevis
-FROM quay.io/confidential-clusters/ignition:clevis-pin-trustee as ignition
+FROM quay.io/confidential-clusters/ignition:attestation as ignition
 FROM $BASE
 
 COPY ./usr /usr
-COPY --from=kbc /usr/local/bin/kbs-client /usr/bin/trustee-attester
+COPY --from=kbc /usr/local/bin/trustee-attester /usr/bin/trustee-attester
 COPY --from=clevis /usr/bin/clevis-pin-trustee /usr/bin/clevis-pin-trustee
 COPY --from=clevis /usr/bin/clevis-encrypt-trustee /usr/bin/clevis-encrypt-trustee
 COPY --from=clevis /usr/bin/clevis-decrypt-trustee /usr/bin/clevis-decrypt-trustee
