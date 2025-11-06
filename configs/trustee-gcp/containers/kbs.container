@@ -4,7 +4,7 @@ After=key-generation.container
 
 [Container]
 ContainerName=kbs
-Image=quay.io/rkaufman/kbs-tpm-snp:latest
+Image=quay.io/rkaufman/kbs-tpm-snp:v1
 Network=host
 Entrypoint=/usr/local/bin/kbs
 PublishPort=8080:8080

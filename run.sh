@@ -1,0 +1,13 @@
+gcloud compute instances create roy-vm             \
+    --image-family "rhel-9" \
+    --image-project "rhel-cloud" \
+    --metadata "ssh-keys=rkaufman:$(cat ~/.ssh/google_compute_engine.pub)" \
+    --boot-disk-size "100GB"                           \
+    --confidential-compute-type "SEV_SNP"               \
+    --machine-type "n2d-standard-2"                    \
+    --maintenance-policy terminate                      \
+    --zone "us-central1-a"                                 \
+    --subnet "roy-subnet-us-central1"                   \
+    --shielded-vtpm \
+    --shielded-integrity-monitoring \
+    --shielded-secure-boot

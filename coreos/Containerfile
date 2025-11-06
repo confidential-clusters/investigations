@@ -1,7 +1,7 @@
 ARG BASE
 
 ARG KBS_CLIENT_IMAGE=quay.io/confidential-clusters/trustee-attester:2025-10-21
-ARG CLEVIS_PIN_TRUSTEE_IMAGE
+ARG CLEVIS_PIN_TRUSTEE_IMAGE=quay.io/confidential-clusters/clevis-pin-trustee
 
 FROM $KBS_CLIENT_IMAGE as kbc
 FROM $CLEVIS_PIN_TRUSTEE_IMAGE as clevis

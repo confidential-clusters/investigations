@@ -1,7 +1,7 @@
 #!/bin/bash
 
 IGNITION_FILE="config.ign"
-IGNITION_CONFIG="$(pwd)/trustee-on-GCP/${IGNITION_FILE}"
+IGNITION_CONFIG="$(pwd)/configs/${IGNITION_FILE}"
 
 
 TRUSTEE_PORT=""
@@ -11,7 +11,7 @@ set -xe
 
 VM_NAME="kbs"
 
-while getopts "k:b:n:f p:s:d:t:i:" opt; do
+while getopts "k:b:n:i:" opt; do
   case $opt in
 	k) key=$OPTARG ;;
 	b) butane=$OPTARG ;;
@@ -40,8 +40,8 @@ KEY=$(cat "$key")
 sed "s|<KEY>|$KEY|g" "$butane" >"${bufile}"
 
 podman run --interactive --rm --security-opt label=disable \
-	--volume "$(pwd)/trustee-on-GCP":/pwd -v "${bufile}":/config.bu:z --workdir /pwd quay.io/coreos/butane:release \
-	--pretty --strict /config.bu --output "/pwd/${IGNITION_FILE}" -d /pwd/trustee
+	--volume "$(pwd)/configs":/pwd -v "${bufile}":/config.bu:z --workdir /pwd quay.io/coreos/butane:release \
+	--pretty --strict /config.bu --output "/pwd/${IGNITION_FILE}" -d /pwd/trustee-gcp
 
 chcon --verbose --type svirt_home_t ${IGNITION_CONFIG}
 

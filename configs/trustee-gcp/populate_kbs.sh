@@ -2,27 +2,22 @@
 
 set -xe
 
-KBS=kbs:8080
 SECRET_PATH=${SECRET_PATH:=default/machine/root}
 KEY=${KEY:=/opt/confidential-containers/kbs/user-keys/private.key}
 
 
 ## set reference values for TPM 
-podman exec -ti kbs-client \
-	kbs-client --url http://${KBS}  config \
-		--auth-private-key ${KEY} \
-		set-sample-reference-value tpm_svn "1"
 for i in {7,14}; do
     value=$(sudo tpm2_pcrread sha256:${i} | awk -F: '/0x/ {sub(/.*0x/, "", $2); gsub(/[^0-9A-Fa-f]/, "", $2); print tolower($2)}')
 	podman exec -ti kbs-client \
-		 kbs-client --url http://${KBS}  config \
+		 kbs-client  config \
 			--auth-private-key ${KEY} \
 			set-sample-reference-value tpm_pcr${i} "${value}"
 done
 
 # Check reference values
 podman exec -ti kbs-client \
-	kbs-client --url http://${KBS}  config \
+	kbs-client  config \
 		--auth-private-key ${KEY} \
 		get-reference-values
 
@@ -41,30 +36,29 @@ default configuration := 2
 ##### TPM
 
 hardware := 2 if {
-	input.tpm.svn in data.reference.tpm_svn
-	input.tpm.pcrs[7] in data.reference.tpm_pcr7
-    input.tpm.pcrs[14] in data.reference.tpm_pcr14
+	input.tpm.pcr07 in data.reference.tpm_pcr7
+    input.tpm.pcr14 in data.reference.tpm_pcr14
 }
 
 hardware := 2 if {
-	input.snp.reported_tcb_snp == 25
+	input.snp.reported_tcb_snp == 27
 }
 
 
 ##### Final decision
-allow if {
-  hardware == 2
-  executables == 3
-  configuration == 2
+result := {
+	"executables": executables,
+	"hardware": hardware,
+	"configuration": configuration
 }
 EOF
 
 podman cp A_policy.rego kbs-client:/A_policy.rego
 podman exec -ti kbs-client \
-	kbs-client --url http://${KBS}  config \
+	kbs-client  config \
 		--auth-private-key ${KEY} \
 		set-attestation-policy \
-		--policy-file A_policy.rego \
+		--policy-file /A_policy.rego \
 		--type rego --id default_cpu
 
 # Upload resource
@@ -73,7 +67,7 @@ cat > secret << EOF
 EOF
 podman cp secret kbs-client:/secret
 podman exec -ti kbs-client \
-	kbs-client --url http://${KBS}  config \
+	kbs-client  config \
 		--auth-private-key ${KEY} \
 		set-resource --resource-file /secret \
 		--path ${SECRET_PATH}
@@ -98,7 +92,7 @@ EOF
 
 podman cp R_policy.rego kbs-client:/R_policy.rego
 podman exec -ti kbs-client \
-	kbs-client --url http://${KBS}  config \
+	kbs-client  config \
 		--auth-private-key ${KEY} \
 		set-resource-policy \
-		--policy-file R_policy.rego \
+		--policy-file /R_policy.rego \

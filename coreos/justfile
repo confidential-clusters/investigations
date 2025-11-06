@@ -34,7 +34,7 @@ osbuild:
     SELINUX_STATUS=$(getenforce)
 
     if [ "$SELINUX_STATUS" = "Enforcing" ]; then
-        sudo setenforce 0
+        echo "WARNING: SELinux is in Enforcing mode. Temporarily disabling for osbuild operation..."
     fi
 
     TMPDIR=$(mktemp -d)
@@ -46,6 +46,3 @@ osbuild:
     rm -rf "$TMPDIR"
     sudo chown $USER:$USER {{os}}-{{platform}}.x86_64.*
 
-    if [ "$SELINUX_STATUS" = "Enforcing" ]; then
-        sudo setenforce 1
-    fi

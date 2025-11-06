@@ -42,7 +42,7 @@ storage:
     - path: /var/kbs/config/kbs-config.toml
       mode: 0644
       contents:
-        local: config/kbs-config.toml
+        local: kbs-config.toml
     - path: /etc/containers/systemd/kbs.container
       mode: 0644
       contents:

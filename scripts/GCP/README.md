@@ -14,7 +14,7 @@ This guide provides step-by-step instructions for setting up remote attestation 
 
 1. To deploy the Trustee server, run:
 ```bash
-./trustee-on-GCP/scripts/deploy-trustee.sh -k <SSH_KEY> -b ./trustee-on-GCP/trustee/trustee.bu -i <IMAGE_NAME>
+./scripts/GCP/deploy-trustee.sh -k <SSH_KEY> -b ./configs/trustee-gcp.bu -i <IMAGE_NAME>
 ```
 2. After the server is up, populate the KBS with the reference value and add the remote ignition file:
 ```bash
@@ -29,17 +29,17 @@ This guide provides step-by-step instructions for setting up remote attestation 
     ```bash
     cd coreos
     just clevis_pin_trustee_image=quay.io/rkaufman/clevis-pin-trustee:latest os=scos base=quay.io/okd/scos-content:4.20.0-okd-scos.6-stream-coreos \
-    kbc_image=quay.io/rkaufman/kbs-tpm-snp:latest platform=gcp build oci-archive osbuild
+    kbc_image=quay.io/rkaufman/kbs-tpm-snp:v1 platform=gcp build oci-archive osbuild
     ```
 
 2. Upload the image to GCP by running:
     ```bash
-    ./trustee-on-GCP/scripts/upload_image_gcp.sh <BUCKET_NAME> <IMAGE_NAME>
+    ./scripts/GCP/upload_image_gcp.sh <BUCKET_NAME> <IMAGE_NAME>
     ```
 
 3. Deploy the client by running:
     ```bash
-    ./trustee-on-GCP/scripts/deploy-client.sh -k <SSH_KEY> -b ./rh-coreos/luks.bu -n <VM_NAME> -i <IMAGE_NAME>
+    ./scripts/GCP/deploy-vm.sh -k <SSH_KEY> -b ./configs/luks.bu -n <VM_NAME> -i <IMAGE_NAME> -h <HOSTNAME>
     ```
     This will create the VM, perform attestation, and decrypt the disk using clevis-pin.
 

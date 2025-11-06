@@ -30,27 +30,16 @@ until ssh core@$IP \
 done
 
 # Setup remote ignition config
-IGNITION=$(create_remote_ign_config)
-BUTANE=pin-trustee.bu
-IGNITION="${BUTANE%.bu}.ign"
-
 HOSTNAME=$3
 if [[ ${HOSTNAME} == "" ]]; then 
 HOSTNAME=${IP}
 fi
-sed "s/<IP>/$HOSTNAME/" configs/remote-ign/${BUTANE} > ${BUTANE}
-
-podman run --interactive --rm --security-opt label=disable \
-	--volume "$(pwd):/pwd" \
-	--workdir /pwd \
-	quay.io/confidential-clusters/butane:clevis-pin-trustee \
-	--pretty --strict /pwd/$BUTANE --output "/pwd/$IGNITION"
-
+IGNITION=$(create_remote_ign_config $HOSTNAME)
 scp -i "${KEY%.*}" \
 	-o StrictHostKeyChecking=no \
 	-o UserKnownHostsFile=/dev/null \
-	/${IGNITION} core@$IP:
-
+	./${IGNITION} core@$IP:
+# Setup remote web server to serve the ignition file
 ssh core@$IP \
 	-i "${KEY%.*}" \
 	-o StrictHostKeyChecking=no \
