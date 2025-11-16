@@ -7,12 +7,14 @@ create_remote_ign_config ()
 	BUTANE=pin-trustee.bu
 	IGNITION="${BUTANE%.bu}.ign"
 
-	sed "s/<IP>/$IP/" configs/remote-ign/${BUTANE} > tmp/${BUTANE}
+	sed "s/<IP>/$IP/" configs/remote-ign/${BUTANE} > ${BUTANE}
 
 	podman run --interactive --rm --security-opt label=disable \
-		--volume "$(pwd)/tmp:/pwd" \
+		--volume "$(pwd):/pwd" \
 		--workdir /pwd \
 		quay.io/confidential-clusters/butane:clevis-pin-trustee \
 		--pretty --strict /pwd/$BUTANE --output "/pwd/$IGNITION"
-	echo "$IGNITION"
+		
+	echo "./$IGNITION"
+	
 }
