@@ -226,4 +226,4 @@ aa-421-techpreview-jjrk9-worker-eastus1-74vwd   Ready    worker                 
 - https://capz.sigs.k8s.io/reference/v1beta1-api.html?highlight=machine#azuremachinespec
 - https://docs.fedoraproject.org/en-US/fedora-coreos/provisioning-azure/
 - https://github.com/confidential-containers/cloud-api-adaptor/blob/main/src/cloud-api-adaptor/azure/build-image.md#pre-requisites
-- https://github.com/confidential-clusters/investigations/tree/main?tab=readme-ov-file#example-with-local-vms-attestation-and-disk-encryption
+- https://github.com/trusted-execution-clusters/investigations/tree/main?tab=readme-ov-file#example-with-local-vms-attestation-and-disk-encryption

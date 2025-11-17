@@ -1,6 +1,6 @@
 # Labeling a bootable container image with PCR values
 
-[cocl-operator](https://github.com/confidential-clusters/cocl-operator) is able to skip computation of the PCR values of a bootable container image, and thus its potential download, when the image is labeled with the PCRs expected for it using the `org.coreos.pcrs` label.
+[cocl-operator](https://github.com/trusted-execution-clusters/cocl-operator) is able to skip computation of the PCR values of a bootable container image, and thus its potential download, when the image is labeled with the PCRs expected for it using the `org.coreos.pcrs` label.
 This guide shows how to manually attach such a label to an image.
 
 # Retrieving the values
@@ -40,17 +40,17 @@ For this approach, we will use the image again, but attach it to a Podman contai
 Check out the compute-pcrs and reference-values repositories and build a compute-pcrs container:
 
 ```sh
-~ $ git clone https://github.com/confidential-clusters/compute-pcrs
+~ $ git clone https://github.com/trusted-execution-clusters/compute-pcrs
 Cloning into 'compute-pcrs'...
 ...
 Resolving deltas: 100% (308/308), done.
-~ $ git clone https://github.com/confidential-clusters/reference-values
+~ $ git clone https://github.com/trusted-execution-clusters/reference-values
 Cloning into 'reference-values'...
 ...
 Resolving deltas: 100% (8/8), done.
 ~ $ cd compute-pcrs
 ~/compute-pcrs $ just build-container
-[1/2] STEP 1/4: FROM ghcr.io/confidential-clusters/buildroot:latest AS builder
+[1/2] STEP 1/4: FROM ghcr.io/trusted-execution-clusters/buildroot:latest AS builder
 ...
 Successfully tagged localhost/compute-pcrs:latest
 ca7b509881b785a918a9e18e80fe80a2b18f04a1b814737b91800d2c7b7e7336

@@ -3,7 +3,7 @@
 **Authors:** demeng@redhat.com \
 **Jira Issue:** [COCL-40](https://issues.redhat.com/browse/COCL-40) \
 **References:**
-- [Setting up OpenShift Confidential Clusters on Azure](https://developers.redhat.com/articles/2025/04/01/how-set-openshift-confidential-clusters-azure)
+- [Setting up OpenShift Confidential Clusters on Azure](https://developers.redhat.com/articles/2025/04/01/how-set-openshift-trusted-execution-clusters-azure)
 - [Trustee Operator Documentation](https://github.com/confidential-containers/trustee-operator)
 
 ## Provisioning the Openshift on Azure first.
