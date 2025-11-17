@@ -13,9 +13,9 @@ An image reference that is accepted by the operator as an approved image will be
 For the image `quay.io/trusted-execution-clusters/fedora-coreos@sha256:e71dad00aa0e3d70540e726a0c66407e3004d96e045ab6c253186e327a2419e5`, it could look like this:
 
 ```sh
-$ kubectl describe configmap -n confidential-clusters image-pcrs
+$ kubectl describe configmap -n trusted-execution-clusters image-pcrs
 Name:         image-pcrs
-Namespace:    confidential-clusters
+Namespace:    trusted-execution-clusters
 Labels:       <none>
 Annotations:  <none>
 

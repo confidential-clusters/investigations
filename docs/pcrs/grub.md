@@ -6,7 +6,7 @@ already available in the public.
 
 This document aims to explain what measurements extend each PCR in the
 case of a Fedora CoreOS node. Also, it covers which of those PCRs could
-be used during the attestation of confidential cluster nodes.
+be used during the attestation of trusted execution cluster nodes.
 
 
 # Methodology

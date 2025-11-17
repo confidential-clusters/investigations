@@ -121,9 +121,9 @@ Verify the kernel has updated on the node.
 
 ```sh
 $ oc get nodes
-NAME                                       STATUS   ROLES                         AGE   VERSION
-cocl-ctlplane-0.confidential-cluster.org   Ready    control-plane,master,worker   26h   v1.32.4
-$ oc get node cocl-ctlplane-0.confidential-cluster.org -ojson | jq .status.nodeInfo.kernelVersion
+NAME                                            STATUS   ROLES                         AGE   VERSION
+cocl-ctlplane-0.trusted-execution-cluster.org   Ready    control-plane,master,worker   26h   v1.32.4
+$ oc get node cocl-ctlplane-0.trusted-execution-cluster.org -ojson | jq .status.nodeInfo.kernelVersion
 "5.14.0-605.el9.x86_64"
 ```
 
