@@ -2,7 +2,7 @@ name: "Build and push trustee-attester container image"
 
 env:
   NAME: "trustee-attester"
-  REGISTRY: "quay.io/confidential-clusters"
+  REGISTRY: "quay.io/trusted-execution-clusters"
 
 on:
   push:

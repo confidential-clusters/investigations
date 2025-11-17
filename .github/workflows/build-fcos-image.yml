@@ -2,7 +2,7 @@ name: "Build and push fedora-coreos container image with customized initrd"
 
 env:
   NAME: "fedora-coreos"
-  REGISTRY: "quay.io/confidential-clusters"
+  REGISTRY: "quay.io/trusted-execution-clusters"
   FCOS_IMG: "quay.io/fedora/fedora-coreos:42.20251012.2.0"
 on:
   push:

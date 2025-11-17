@@ -12,7 +12,7 @@ create_remote_ign_config ()
 	podman run --interactive --rm --security-opt label=disable \
 		--volume "$(pwd)/tmp:/pwd" \
 		--workdir /pwd \
-		quay.io/confidential-clusters/butane:clevis-pin-trustee \
+		quay.io/trusted-execution-clusters/butane:clevis-pin-trustee \
 		--pretty --strict /pwd/$BUTANE --output "/pwd/$IGNITION"
 	echo "$IGNITION"
 }

@@ -16,7 +16,7 @@ spec:
         type: Directory
   containers:
     - name: register-ak
-      image: quay.io/confidential-clusters/test-server-ak:latest
+      image: quay.io/trusted-execution-clusters/test-server-ak:latest
       ports:
         - containerPort: 5001
           hostPort: 5001
@@ -25,7 +25,7 @@ spec:
           mountPath: /data
 
     - name: kbs
-      image: quay.io/confidential-clusters/kbs:latest
+      image: quay.io/trusted-execution-clusters/key-broker-service:latest
       command: ["kbs", "--config-file", "/config/kbs-config.toml"]
       ports:
         - containerPort: 8080
