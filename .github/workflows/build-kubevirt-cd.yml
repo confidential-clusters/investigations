@@ -1,0 +1,54 @@
+name: "Build and push kubevirt container disk"
+
+env:
+  NAME: "fedora-coreos-kubevirt"
+  REGISTRY: "quay.io/trusted-execution-clusters"
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'coreos/**'
+      - '.github/workflows/build-kubevirt-cd.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'coreos/**'
+      - '.github/workflows/build-kubevirt-cd.yml'
+  workflow_dispatch:
+
+permissions: read-all
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build-kubevirt-cd:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install just
+        run: sudo apt-get update -y && sudo apt-get install -y just
+
+      - name: Add user to kvm group
+        run: sudo usermod -aG kvm $(whoami)
+
+      - name: Build kubevirt container disk
+        working-directory: coreos
+        run: sudo just build oci-archive init kubevirt
+
+      - name: Login to Container Registry
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: sudo skopeo login --username ${{ secrets.REGISTRY_USERNAME }} --password ${{ secrets.REGISTRY_PASSWORD }} quay.io
+
+      - name: Push to Container Registry
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        working-directory: coreos
+        run: |
+          BUILD_ID=$(cat cache/builds/builds.json | jq -r .builds[0].id)
+          sudo skopeo copy oci-archive:cache/builds/latest/x86_64/fedora-coreos-${BUILD_ID}-kubevirt.x86_64.ociarchive docker://quay.io/trusted-execution-clusters/fedora-coreos-kubevirt:${BUILD_ID}
