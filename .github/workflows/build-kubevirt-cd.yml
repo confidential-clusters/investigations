@@ -1,0 +1,53 @@
+name: "Build and push kubevirt container disk"
+
+env:
+  NAME: "fedora-coreos-kubevirt"
+  REGISTRY: "quay.io/trusted-execution-clusters"
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'coreos/**'
+      - '.github/workflows/build-kubevirt-cd.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'coreos/**'
+      - '.github/workflows/build-kubevirt-cd.yml'
+  workflow_dispatch:
+
+permissions: read-all
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build-kubevirt-cd:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install just
+        uses: extractions/setup-just@v2
+
+      - name: Install osbuild
+        run: sudo apt-get update && sudo apt-get install -y osbuild
+
+      - name: Build kubevirt container disk
+        working-directory: coreos
+        run: just build oci-archive osbuild-qemu kubevirt-cd
+
+      - name: Push to Container Registry
+        uses: redhat-actions/push-to-registry@v2
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        with:
+          image: ${{ env.NAME }}
+          tags: latest
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
