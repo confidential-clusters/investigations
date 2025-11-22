@@ -2,7 +2,7 @@
 FROM fedora:rawhide AS builder
 
 # default is 'main' but can be e.g. COMMIT=v0.11.0 (with --build-arg COMMIT=v0.11.0)
-ARG COMMIT=main
+ARG COMMIT=skip-verify-initdata
 
 RUN dnf install -y perl clang make git \
       tss2-devel tpm2-tss-devel \
@@ -11,7 +11,7 @@ RUN dnf install -y perl clang make git \
     && dnf clean all
 
 RUN cd /usr/src/ && \
-    git clone https://github.com/confidential-containers/trustee.git && \
+    git clone https://github.com/trusted-execution-clusters/trustee.git && \
     cd trustee && git checkout ${COMMIT}
 
 RUN cd /usr/src/trustee/kbs && \

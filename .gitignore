@@ -1,6 +1,9 @@
 cache/
 coreos.key*
 fcos-cvm.tar*
+coreos/*.qcow2
 *.ign
 *.ociarchive
+secret
 tmp/
+trustee/keys

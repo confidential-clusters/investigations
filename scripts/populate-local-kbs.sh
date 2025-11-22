@@ -15,12 +15,24 @@ $KBC --url $URL  config \
 	set-resource --path default/machine/root \
 	--resource-file $(pwd)/secret
 
+cat <<EOF > tmp/resource-policy.rego
+package policy
+import rego.v1
+
+default allow := false
+
+allow if {
+  input.submods.cpu0["ear.status"] == "affirming"
+  input.submods.cpu0["ear.veraison.annotated-evidence"].init_data_claims.uuid == split(data["resource-path"], "/")[2]
+}
+EOF
+
 $KBC --url http://localhost:8080  config \
 	--auth-private-key $KEY  \
-	set-resource-policy  --allow-all
+	set-resource-policy --policy-file tmp/resource-policy.rego
 
 
-cat <<EOF >attestation-policy.rego
+cat <<EOF > tmp/attestation-policy.rego
 package policy
 import rego.v1
 default hardware := 97
@@ -69,4 +81,4 @@ $KBC --url $URL config \
 	get-reference-values
 $KBC --url $URL  config \
 	--auth-private-key $KEY  \
-	set-attestation-policy --policy-file attestation-policy.rego --id default_cpu --type rego
+	set-attestation-policy --policy-file tmp/attestation-policy.rego --id default_cpu --type rego

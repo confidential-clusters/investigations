@@ -1,5 +1,5 @@
 ARG BASE
-FROM quay.io/trusted-execution-clusters/trustee-attester:2025-10-21 as kbc
+FROM quay.io/trusted-execution-clusters/trustee-attester:2025-11-12 as kbc
 FROM quay.io/trusted-execution-clusters/clevis-pin-trustee as clevis
 FROM quay.io/trusted-execution-clusters/ignition:attestation as ignition
 FROM $BASE

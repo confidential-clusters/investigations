@@ -3,7 +3,22 @@
 set -euo pipefail
 # set -x
 
-source scripts/common.sh
+create_remote_ign_config ()
+{
+	IP=$1
+	# Setup remote ignition config
+	BUTANE=pin-trustee.bu
+	IGNITION="${BUTANE%.bu}.ign"
+
+	sed "s/<IP>/$IP/" configs/remote-ign/${BUTANE} > tmp/${BUTANE}
+
+	podman run --interactive --rm --security-opt label=disable \
+		--volume "$(pwd)/tmp:/pwd" \
+		--workdir /pwd \
+		quay.io/confidential-clusters/butane:clevis-pin-trustee \
+		--pretty --strict /pwd/$BUTANE --output "/pwd/$IGNITION"
+	echo "$IGNITION"
+}
 
 force=false
 while getopts "k:b:n:fi:m:" opt; do
@@ -62,20 +77,9 @@ butane_name="$(basename ${butane})"
 IGNITION_FILE="tmp/${butane_name%.bu}.ign"
 IGNITION_CONFIG="$(pwd)/${IGNITION_FILE}"
 bufile="./tmp/${butane_name}"
-if [[ "$VM_NAME" == "vm" ]]; then
-	IP="$(./scripts/get-ip.sh trustee)"
-	sed "s|<KEY>|$key|g" $butane | sed "s/<IP>/$IP/" > ${bufile}
-elif [[ "$VM_NAME" == "existing-trustee" ]]; then
-	sed "s|<KEY>|key|g;
-	     s|<IP>|$(ip route | grep virbr0 | cut -d' ' -f9)|g;
-	     s|pin-trustee.ign|ignition-clevis-pin-trustee|g" "$butane" > "$bufile"
-elif [ ! -z "$TRUSTEE_ADDR" ]; then
-	sed "s|<KEY>|key|g;
-	     s|<IP>|$TRUSTEE_ADDR|g;" "$butane" > "$bufile"
-	create_remote_ign_config $TRUSTEE_ADDR
-else
-	sed "s|<KEY>|$key|g" $butane > ${bufile}
-fi
+sed "s|<KEY>|$key|g;
+     s|<IP>|$TRUSTEE_ADDR|g;" "$butane" > "$bufile"
+create_remote_ign_config $TRUSTEE_ADDR
 
 
 butane_args=()
