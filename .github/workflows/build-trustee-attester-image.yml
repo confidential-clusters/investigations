@@ -31,22 +31,31 @@ concurrency:
 jobs:
   build-trustee-attester-image:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - tag: fedora
+            base: fedora:rawhide
+          - tag: centos-stream
+            base: quay.io/centos/centos:stream9
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build trustee-attester image
+      - name: Build trustee-attester image (${{ matrix.tag }})
         id: build-image
         uses: redhat-actions/buildah-build@v2
         with:
           image: ${{ env.NAME }}
-          tags: latest
+          tags: ${{ matrix.tag }}
           containerfiles: |
             containerfiles/trustee-attester.container
           context: containerfiles
           oci: true
+          build-args: |
+            BASE=${{ matrix.base }}
 
-      - name: Push to Container Registry
+      - name: Push trustee-attester image (${{ matrix.tag }}) to registry
         uses: redhat-actions/push-to-registry@v2
         if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main' && github.repository_owner == 'trusted-execution-clusters'
         with:

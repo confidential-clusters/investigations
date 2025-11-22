@@ -1,8 +1,14 @@
-FROM fedora:rawhide as builder
+ARG BASE
+FROM $BASE as builder
 
 # default is 'main' but can be e.g. COMMIT=v0.11.0 (with --build-arg COMMIT=v0.11.0)
 ARG COMMIT=main
 ARG ATTESTERS=snp-attester,tdx-attester,az-snp-vtpm-attester,az-tdx-vtpm-attester,tpm-attester
+ARG BASE
+
+# Enable CRB repo if using centos stream
+RUN . /etc/os-release && \
+     dnf config-manager --set-enabled crb || true
 
 RUN dnf install -y git tss2-devel tpm2-tss-devel cargo openssl-devel perl
 
@@ -16,7 +22,7 @@ RUN cd /usr/src/guest-components && \
     install target/debug/trustee-attester /usr/local/bin/
 
 
-FROM fedora:rawhide
+FROM $BASE
 
 COPY --from=builder /usr/local/bin/trustee-attester /usr/local/bin/
 
