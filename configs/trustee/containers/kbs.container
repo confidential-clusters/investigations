@@ -4,7 +4,7 @@ After=key-generation.container
 
 [Container]
 ContainerName=kbs
-Image=quay.io/rkaufman/kbs-tpm-snp:v1
+Image=quay.io/trusted-execution-clusters/key-broker-service:fix-TPM-report-data-size
 Network=host
 Entrypoint=/usr/local/bin/kbs
 PublishPort=8080:8080
@@ -13,6 +13,7 @@ Volume=/var/kbs/config/kbs-config.toml:/opt/confidential-containers/kbs/config/k
 Volume=kbs-storage:/opt/confidential-containers/kbs/repository
 Volume=nebula-ca:/opt/confidential-containers/kbs/nebula-ca
 Volume=user-keys:/opt/confidential-containers/kbs/user-keys
+Volume=trusted-ak-keys:/etc/tpm/trusted_ak_keys
 Exec=--config-file \
     /opt/confidential-containers/kbs/config/kbs-config.toml
 

@@ -18,7 +18,8 @@ install () {
         tpm2_nvread \
         tpm2_nvwrite \
         tpm2_pcrread \
-        tpm2_unseal
+        tpm2_unseal \
+        tpm2_readpublic
 
     # Library dependencies
     inst_libdir_file "libtss2*" 

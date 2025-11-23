@@ -44,8 +44,8 @@ KEY=$(cat "$key")
 
 sed "s|<KEY>|$KEY|g" $butane | sed "s/<IP>/$hostname/" > "${bufile}"
 
-podman run --interactive --rm --security-opt label=disable \
-	--volume "$(pwd)":/pwd -v "${bufile}":/config.bu:z --workdir /pwd quay.io/confidential-clusters/butane:clevis-pin-trustee \
+sudo podman run --interactive  --rm --security-opt label=disable \
+	--volume "$(pwd)":/pwd -v "${bufile}":/config.bu:z --workdir /pwd quay.io/trusted-execution-clusters/butane:attestation \
 	--pretty --strict /config.bu --output "/pwd/${IGNITION_FILE}" -d /pwd/rh-coreos
 
 chcon --verbose --type svirt_home_t ${IGNITION_CONFIG}

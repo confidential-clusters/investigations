@@ -2,7 +2,7 @@
 
 set -euo pipefail
 # set -x
-source common.sh
+source ./scripts/common.sh
 
 if [[ "${#}" > 3 ]]; then
 	echo "Usage: $0 <path-to-ssh-public-key>"
@@ -24,7 +24,7 @@ until ssh core@$IP \
 	-i "${KEY%.*}" \
 	-o StrictHostKeyChecking=no \
 	-o UserKnownHostsFile=/dev/null \
-	'sudo /usr/local/bin/populate_kbs.sh'; do
+	'populate_kbs.sh'; do
 	echo "Waiting for KBS to be populated..."
 	sleep 1
 done

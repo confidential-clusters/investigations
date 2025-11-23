@@ -4,7 +4,7 @@ After=key-generation.container
 
 [Container]
 ContainerName=kbs-client
-Image=quay.io/rkaufman/kbs-tpm-snp:v1
+Image=quay.io/trusted-execution-clusters/trustee-attester:TPM-additional-dev
 Network=host
 Volume=user-keys:/opt/confidential-containers/kbs/user-keys
 Exec=tail -f /dev/null

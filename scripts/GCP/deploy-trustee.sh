@@ -41,7 +41,7 @@ sed "s|<KEY>|$KEY|g" "$butane" >"${bufile}"
 
 podman run --interactive --rm --security-opt label=disable \
 	--volume "$(pwd)/configs":/pwd -v "${bufile}":/config.bu:z --workdir /pwd quay.io/coreos/butane:release \
-	--pretty --strict /config.bu --output "/pwd/${IGNITION_FILE}" -d /pwd/trustee-gcp
+	--pretty --strict /config.bu --output "/pwd/${IGNITION_FILE}" -d /pwd/trustee
 
 chcon --verbose --type svirt_home_t ${IGNITION_CONFIG}
 

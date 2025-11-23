@@ -9,17 +9,11 @@ KEY=${KEY:=/opt/confidential-containers/kbs/user-keys/private.key}
 ## set reference values for TPM 
 for i in {7,14}; do
     value=$(sudo tpm2_pcrread sha256:${i} | awk -F: '/0x/ {sub(/.*0x/, "", $2); gsub(/[^0-9A-Fa-f]/, "", $2); print tolower($2)}')
-	podman exec -ti kbs-client \
-		 kbs-client  config \
-			--auth-private-key ${KEY} \
-			set-sample-reference-value tpm_pcr${i} "${value}"
+	kbs-client set-sample-reference-value tpm_pcr${i} "${value}"
 done
 
 # Check reference values
-podman exec -ti kbs-client \
-	kbs-client  config \
-		--auth-private-key ${KEY} \
-		get-reference-values
+kbs-client get-reference-values
 
 
 # Create attestation policy
@@ -53,25 +47,15 @@ result := {
 }
 EOF
 
-podman cp A_policy.rego kbs-client:/A_policy.rego
-podman exec -ti kbs-client \
-	kbs-client  config \
-		--auth-private-key ${KEY} \
-		set-attestation-policy \
-		--policy-file /A_policy.rego \
-		--type rego --id default_cpu
+sudo podman cp A_policy.rego kbs-client:/A_policy.rego
+kbs-client set-attestation-policy --policy-file A_policy.rego --type rego --id default_cpu
 
 # Upload resource
 cat > secret << EOF
 { "key_type": "oct", "key": "2b442dd5db4478367729ef8bbf2e7480" }
 EOF
-podman cp secret kbs-client:/secret
-podman exec -ti kbs-client \
-	kbs-client  config \
-		--auth-private-key ${KEY} \
-		set-resource --resource-file /secret \
-		--path ${SECRET_PATH}
-
+sudo podman cp secret kbs-client:/secret
+kbs-client set-resource --resource-file /secret --path ${SECRET_PATH}
 
 # Create resource policy
 ## This policy allows access only if both CPUs report an "affirming" status 
@@ -90,9 +74,5 @@ allow if {
 }
 EOF
 
-podman cp R_policy.rego kbs-client:/R_policy.rego
-podman exec -ti kbs-client \
-	kbs-client  config \
-		--auth-private-key ${KEY} \
-		set-resource-policy \
-		--policy-file /R_policy.rego \
+sudo podman cp R_policy.rego kbs-client:/R_policy.rego
+kbs-client set-resource-policy --policy-file R_policy.rego

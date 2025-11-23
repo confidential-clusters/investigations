@@ -1,0 +1,13 @@
+#!/bin/bash
+
+set -euo pipefail
+# set -x
+
+KEY="${KEY:=/opt/confidential-containers/kbs/user-keys/private.key}"
+
+sudo podman exec -ti \
+  kbs-client \
+    kbs-client \
+      config \
+      --auth-private-key "${KEY}" \
+      "${@}"

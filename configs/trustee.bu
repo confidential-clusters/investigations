@@ -35,6 +35,10 @@ storage:
       mode: 0755
       contents:
         local: populate_kbs.sh
+    - path: /usr/local/bin/kbs-client
+      mode: 0755
+      contents:
+        local: kbs-client
     - path: /etc/containers/systemd/key-generation.container
       mode: 0644
       contents:
@@ -55,5 +59,9 @@ storage:
       mode: 0644
       contents:
         local: containers/nginx.container
+    - path: /etc/containers/systemd/register-ak.container
+      mode: 0644
+      contents:
+        local: containers/register-ak.container
 
 
