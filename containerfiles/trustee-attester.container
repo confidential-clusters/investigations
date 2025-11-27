@@ -13,7 +13,7 @@ RUN . /etc/os-release && \
 RUN dnf install -y git tss2-devel tpm2-tss-devel cargo openssl-devel perl
 
 RUN cd /usr/src/ && \
-    git clone https://github.com/confidential-containers/guest-components.git && \
+    git clone https://github.com/trusted-execution-clusters/guest-components.git && \
     cd guest-components && git checkout ${COMMIT}
 
 RUN cd /usr/src/guest-components && \

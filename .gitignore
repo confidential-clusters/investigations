@@ -7,3 +7,5 @@ coreos/*.qcow2
 secret
 tmp/
 trustee/keys
+*.tar
+*.tar.gz
