@@ -1,0 +1,101 @@
+1. Create a sealed Bootable Container image with a signed UKI
+
+podman images
+
+cat Containerfile.uki-simplified
+
+./podman-build-uki -t quay.io/fedora/fedora-coreos-uki-cocl:42.20250901.3.0
+
+podman run --rm -ti quay.io/fedora/fedora-coreos-uki-cocl:42.20250901.3.0 ls -lhR /boot/EFI/Linux/
+
+skopeo copy containers-storage:quay.io/fedora/fedora-coreos-uki-cocl:42.20250901.3.0 docker://quay.io/travier/fedora-coreos-uki-cocl:42.20250901.3.0
+
+./bootc-install-to-filesystem quay.io/fedora/fedora-coreos-uki-cocl:42.20250901.3.0
+
+2. Get the PCR values for this Bootable Container image
+
+tree efivars
+
+./compute-pcr7
+
+./compute-pcr4 quay.io/travier/fedora-coreos-uki-cocl:42.20250901.3.0
+
+PCR 4: bd0b588a7c871289d2322289599cc12e7cb27152f488284d3ce74182d6d8586c
+PCR 7: 9db9327deecc901b7225897f8c669798e873cc081049ecc833ca9bd30d7153ba
+
+3. Setup a trustee server and configure reference values
+
+sudo podman ps
+
+cat /opt/policy.rego
+
+kbs-client set-attestation-policy --policy-file policy.rego --type rego --id default_cpu
+
+cat secret
+
+kbs-client set-resource --resource-file /secret --path default/machine/root
+
+kbs-client set-sample-reference-value 'tpm_pcr4' 'bd0b588a7c871289d2322289599cc12e7cb27152f488284d3ce74182d6d8586c'
+kbs-client set-sample-reference-value 'tpm_pcr7' '9db9327deecc901b7225897f8c669798e873cc081049ecc833ca9bd30d7153ba'
+
+kbs-client get-reference-values | jq -r | jq
+
+4. Boot a node and remote attest it, encrypting the disk on first boot
+
+./start-attested-vm.sh
+
+findmnt /
+
+cat /proc/cmdline
+
+sudo bootctl
+
+lsblk
+
+sudo cryptsetup luksDump /dev/vda3
+
+sudo cryptsetup token export /dev/vda3 --token-id 0 | jq
+
+sudo cryptsetup token export /dev/vda3 --token-id 0 | jq -r '.jwe.protected' | base64 -d | jq
+
+5. Update to a newer version
+
+TODO: update sed -i "s///" /etc/os-release
+
+sudo bootc switch quay.io/travier/fedora-coreos-uki-cocl:42.20250901.3.1
+
+# Hidden
+IP=192.168.122.195
+UKIHOST="core@$IP"
+scp addons/luks.addon.efi $UKIHOST:
+scp addons/rd.neednet.addon.efi $UKIHOST:
+ssh $UKIHOST sudo mount /dev/vda1 /mnt
+DST="$(ssh $UKIHOST ls /mnt/EFI/Linux/uki 2&> /dev/null | grep "extra.d" | tr '\n' ' ')"
+for d in $DST; do ssh $UKIHOST sudo rm -rfv /mnt/EFI/Linux/uki/$d ; done
+ssh $UKIHOST sudo mkdir -p /mnt/loader/addons/
+ssh $UKIHOST sudo cp rd.neednet.addon.efi luks.addon.efi /mnt/loader/addons/
+
+
+DST="$(ssh $UKIHOST ls /mnt/EFI/Linux/uki 2&> /dev/null | grep "extra.d" | tr '\n' ' ')"
+for d in $DST; do ssh $UKIHOST sudo rm -rfv /mnt/EFI/Linux/uki/$d ; done
+
+sudo bootc status
+
+sudo bootc composefs-finalize-staged
+
+6. Get new PCR values
+
+./compute-pcr4 quay.io/travier/fedora-coreos-uki-cocl:42.20250901.3.1
+
+PCR 4: 94249cfc224fc1f7887d22646e29c0e8bc2b244c1970036b54aa010908a465ae
+PCR 7: 9db9327deecc901b7225897f8c669798e873cc081049ecc833ca9bd30d7153ba
+
+kbs-client set-sample-reference-value 'tpm_pcr4' '94249cfc224fc1f7887d22646e29c0e8bc2b244c1970036b54aa010908a465ae'
+
+kbs-client get-reference-values | jq -r | jq
+
+7. Reboot and decryption on second boot
+
+sudo reboot
+
+sudo bootc status
