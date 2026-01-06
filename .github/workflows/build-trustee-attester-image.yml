@@ -17,6 +17,8 @@ on:
     paths:
       - 'containerfiles/trustee-attester.container'
       - '.github/workflows/build-trustee-attester-image.yml'
+  schedule:
+    - cron:  '0 0 * * MON'
   workflow_dispatch:
 
 permissions: read-all

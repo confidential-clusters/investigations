@@ -17,6 +17,8 @@ on:
     paths:
       - 'containerfiles/trustee.container'
       - '.github/workflows/build-trustee-image.yml'
+  schedule:
+    - cron:  '0 0 * * MON'
   workflow_dispatch:
 
 permissions: read-all
