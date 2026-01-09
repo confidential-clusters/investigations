@@ -17,6 +17,8 @@ on:
     paths:
       - 'coreos/**'
       - '.github/workflows/build-fcos-image.yml'
+  schedule:
+    - cron:  '0 0 * * MON'
   workflow_dispatch:
 
 permissions: read-all

@@ -17,6 +17,8 @@ on:
     paths:
       - 'clevis-pin-trustee/Containerfile'
       - '.github/workflows/build-clevis-pin-trustee-image.yml'
+  schedule:
+    - cron:  '0 0 * * MON'
   workflow_dispatch:
 
 permissions: read-all
