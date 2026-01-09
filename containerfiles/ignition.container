@@ -1,0 +1,3 @@
+FROM scratch
+
+COPY bin/amd64/ignition /usr/bin/ignition
