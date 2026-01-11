@@ -1,0 +1,13 @@
+[Unit]
+Description=server that allow to register AK
+Wants=network-online.target
+After=network-online.target
+
+[Container]
+ContainerName=register-ak
+Image=quay.io/trusted-execution-clusters/test-server-ak:latest
+PublishPort=5001:5001
+Volume=trusted-ak-keys:/data
+
+[Install]
+WantedBy=default.target
