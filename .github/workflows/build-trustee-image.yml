@@ -35,12 +35,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Generate image tag
+        id: generate-tag
+        run: |
+          SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+          TAG="${SHORT_SHA}"
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+
       - name: Build Trustee image
         id: build-image
         uses: redhat-actions/buildah-build@v2
         with:
           image: ${{ env.NAME }}
-          tags: latest
+          tags: ${{ steps.generate-tag.outputs.tag }}
           containerfiles: |
             containerfiles/trustee.container
           context: containerfiles
