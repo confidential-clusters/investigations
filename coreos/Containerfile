@@ -1,7 +1,7 @@
 ARG BASE
-FROM quay.io/trusted-execution-clusters/trustee-attester:2025-11-12 as kbc
+FROM quay.io/trusted-execution-clusters/trustee-attester:fedora-b13fd8a as kbc
 FROM quay.io/trusted-execution-clusters/clevis-pin-trustee as clevis
-FROM quay.io/trusted-execution-clusters/ignition:attestation as ignition
+FROM ghcr.io/trusted-execution-clusters/ignition:20260112-85608d6 as ignition
 FROM $BASE
 
 COPY ./usr /usr

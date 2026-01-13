@@ -12,11 +12,17 @@ scos_os:= "rhcos"
 fcos_label:= "fedora-coreos"
 scos_label:= "centos-stream-coreos"
 
+fcos_config:= "https://github.com/coreos/fedora-coreos-config"
+scos_config:= "https://github.com/coreos/rhel-coreos-config.git"
+
 base := if os == "scos" { scos_base_img } else { fcos_base_img }
 image := if os == "scos" { scos_img } else { fcos_img }
 os_name := if os == "scos" { scos_os } else { fcos_os }
 label := if os == "scos" { scos_label } else { fcos_label }
 archive := os + ".ociarchive"
+
+config := if os == "scos" { scos_config } else { fcos_config }
+full_name := if os == "scos" { "centos-stream-coreos" } else { "fedora-coreos" }
 
 build:
     sudo podman build --no-cache --build-arg BASE={{base}} --build-arg COM_COREOS_OSNAME={{label}} -t {{image}} -f Containerfile .
@@ -24,15 +30,46 @@ build:
 oci-archive:
     sudo skopeo copy containers-storage:{{image}} oci-archive:{{archive}}
 
-osbuild-qemu:
-    #!/bin/bash
-    set -xeuo pipefail
+# Reusable cosa function definition
+cosa_function := '''
+    #!/usr/bin/env bash
+    cosa() {
+        env | grep COREOS_ASSEMBLER || true
 
-    TMPDIR=$(mktemp -d)
-    git clone --depth 1 https://github.com/coreos/custom-coreos-disk-images ${TMPDIR}
+        # Default container image
+        COREOS_ASSEMBLER_CONTAINER_LATEST="quay.io/coreos-assembler/coreos-assembler:latest"
+        sudo podman pull $COREOS_ASSEMBLER_CONTAINER_LATEST
 
-    sudo -E ${TMPDIR}/custom-coreos-disk-images.sh --platform qemu \
-        --ociarchive {{archive}} \
-        --osname {{os_name}}
-    rm -rf "$TMPDIR"
-    sudo chown $USER:$USER {{os}}-qemu.x86_64.qcow2
+        set -ex
+        sudo podman run --rm -ti --security-opt=label=disable --privileged -u 0 \
+				--network host \
+            -v=${PWD}:/srv/ --device=/dev/kvm --device=/dev/fuse \
+            --tmpfs=/tmp -v=/var/tmp:/var/tmp --name=cosa \
+            ${COREOS_ASSEMBLER_CONFIG_GIT:+-v=$COREOS_ASSEMBLER_CONFIG_GIT:/srv/src/config/:ro} \
+            ${COREOS_ASSEMBLER_GIT:+-v=$COREOS_ASSEMBLER_GIT/src/:/usr/lib/coreos-assembler/:ro} \
+            ${COREOS_ASSEMBLER_ADD_CERTS:+-v=/etc/pki/ca-trust:/etc/pki/ca-trust:ro} \
+            ${COREOS_ASSEMBLER_CONTAINER_RUNTIME_ARGS} \
+            ${COREOS_ASSEMBLER_CONTAINER:-$COREOS_ASSEMBLER_CONTAINER_LATEST} "$@"
+    }
+'''
+
+init:
+    #!/usr/bin/env bash
+    {{cosa_function}}
+    mkdir -p cache
+    cp {{archive}} cache/{{archive}}
+    cd cache
+    cosa init --force {{config}}
+    cosa import oci-archive:/srv/{{archive}}
+
+build-qemu:
+    #!/usr/bin/env bash
+    {{cosa_function}}
+    cd cache
+    cosa osbuild qemu
+
+kubevirt:
+    #!/usr/bin/env bash
+    {{cosa_function}}
+    cd cache
+    cosa osbuild kubevirt
